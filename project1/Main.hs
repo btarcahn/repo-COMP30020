@@ -3,4 +3,5 @@
 -- Student ID: 941113
 
 -- test
+import Proj1
 hello = "helloworld!"
