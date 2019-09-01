@@ -8,13 +8,22 @@ Student ID: 941113
 module Proj1 (feedback, initialGuess, nextGuess, GameState) where
 import Card
 
-data GameState = Won | Lost
+-- first representation of the state
+data GameState = GameState [Card]
+    deriving Show
 
 feedback :: [Card] -> [Card] -> (Int, Int, Int, Int, Int)
-feedback _ _ = (0,0,0,0,0)
+
+feedback [] [] = (0,0,0,0,0)
+feedback ans g = (correct_card, lower_rank, correct_rank, higher_rank, correct_suit)
+    where correct_card = 0
+          lower_rank = 0
+          correct_rank = 0
+          higher_rank = 0
+          correct_suit = 0
 
 initialGuess :: Int -> ([Card], GameState)
-initialGuess _ = ([], Won)
+initialGuess _ = ([], GameState[])
 
 nextGuess :: ([Card],GameState) -> (Int,Int,Int,Int,Int) -> ([Card],GameState)
-nextGuess _ _ = ([], Won)
+nextGuess _ _ = ([], GameState[])
