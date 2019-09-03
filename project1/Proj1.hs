@@ -34,15 +34,16 @@ serializedElem :: Eq a => [a] -> [a] -> [Bool]
 serializedElem _ans [g] = [elem g _ans] 
 serializedElem _ans (g:gs) = (elem g _ans) : serializedElem _ans gs
 
-{--
-Returns the count for "how many elements in list
-b satisfies the condition bounded to list a"
--}
-countAcross :: (Eq a, Ord a) => (a -> [a] -> Bool) -> [a] -> [a] -> Int
-countAcross _func _ [] = 0
-countAcross _func _a (b:bs)
-    | _func b _a = 1 + countAcross _func _a bs
-    | otherwise = countAcross _func _a bs
+-- Helper functions
+
+lowestRank :: [Card] -> Rank
+lowestRank _cardlist = minimum (map rank _cardlist)
+
+highestRank :: [Card] -> Rank
+highestRank _cardlist = maximum (map rank _cardlist)
+
+
+
 -- End of helper functions
 
 {--
@@ -54,11 +55,11 @@ returns a 5-integer tuple.
 feedback :: [Card] -> [Card] -> (Int, Int, Int, Int, Int)
 feedback [] [] = (0,0,0,0,0)
 feedback _ans _g = (correct_card, lower_rank, correct_rank, higher_rank, correct_suit)
-    where correct_card = countAcross elem (nub _ans) (nub _g)
-          lower_rank = 0
-          correct_rank = 0
-          higher_rank = 0
-          correct_suit = 0
+    where correct_card = length (intersect _g _ans)
+          lower_rank = length (filter (< (lowestRank _g)) (map rank _ans))
+          correct_rank = length (intersect (nub(map rank _g)) (nub (map rank _ans)))
+          higher_rank = length (filter (> (highestRank _g)) (map rank _ans))
+          correct_suit = length (intersect (nub (map suit _g)) (nub (map suit _ans)))
 
 initialGuess :: Int -> ([Card], GameState)
 initialGuess _ = ([], GameState[])
