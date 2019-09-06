@@ -18,21 +18,12 @@ Contains the information of the Cards between states.
 data GameState = GameState [Card]
     deriving Show
 
--- Helper functions
+
+-- Helper constants
 kh = Card Heart King
 qh = Card Heart Queen
 ks = Card Spade King
 qs = Card Spade Queen
-{--
-Count occurences satisfies a criteria
--}
-count :: (a -> Bool) -> [a] -> Int
-count _ [] = 0
-count func list = length (filter func list)
-
-serializedElem :: Eq a => [a] -> [a] -> [Bool]
-serializedElem _ans [g] = [elem g _ans] 
-serializedElem _ans (g:gs) = (elem g _ans) : serializedElem _ans gs
 
 -- Helper functions
 
@@ -41,8 +32,6 @@ lowestRank _cardlist = minimum (map rank _cardlist)
 
 highestRank :: [Card] -> Rank
 highestRank _cardlist = maximum (map rank _cardlist)
-
-
 
 -- End of helper functions
 
