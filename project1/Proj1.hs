@@ -108,7 +108,9 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     component given by the previous guess.
     -}
     nextGuess :: ([Card], GameState) -> (Int,Int,Int,Int,Int) -> ([Card], GameState)
-    nextGuess (_prev_guess, _state) (a, b, c, d, e)
+    nextGuess (_prev_guess, Remnants _remnants) (a, b, c, d, e)
         | length _prev_guess == a = (_prev_guess, Remnants[])
-        | otherwise = ([], Remnants [])
+        | otherwise = (_next_guess, Remnants _next_remnants)
+        where _next_remnants = delete _prev_guess _remnants
+              _next_guess = (_next_remnants !! 0)
     
