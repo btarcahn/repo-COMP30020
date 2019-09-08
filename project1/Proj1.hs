@@ -66,6 +66,16 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
         -}
         | otherwise = take _cardnum _cardlist
     
+    destroyRank :: [Rank] -> [[Card]] -> [[Card]]
+    destroyRank _ [] = []
+    destroyRank _ranklist (d:ds)
+        | sort (map rank d) == sort _ranklist = destroyRank _ranklist ds
+        | otherwise =  [d] ++ destroyRank _ranklist ds
+
+    destroySuit :: [Suit] -> [[Card]] -> [[Card]]
+    destroySuit _suitlist (d:ds)
+        | sort (map suit d) == sort _suitlist = destroySuit _suitlist ds
+        | otherwise =  [d] ++ destroySuit _suitlist ds
     -- End of helper functions
     
     {--
@@ -110,6 +120,8 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     nextGuess :: ([Card], GameState) -> (Int,Int,Int,Int,Int) -> ([Card], GameState)
     nextGuess (_prev_guess, Remnants _remnants) (a, b, c, d, e)
         | length _prev_guess == a = (_prev_guess, Remnants[])
+        | c == 0 = (destroyRank (map rank _prev_guess) _remnants !! 0, Remnants (destroyRank (map rank _prev_guess) _remnants))
+        | e == 0 = (destroySuit (map suit _prev_guess) _remnants !! 0, Remnants (destroySuit (map suit _prev_guess) _remnants))
         | otherwise = (_next_guess, Remnants _next_remnants)
         where _next_remnants = delete _prev_guess _remnants
               _next_guess = (_next_remnants !! 0)
