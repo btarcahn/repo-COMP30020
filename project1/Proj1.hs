@@ -22,7 +22,7 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     @author: Bach Tran
     @since 1.0
     -}
-    data GameState = GameState (Int, Int, Int, Int, Int)
+    data GameState = Win Bool | Remnants [[Card]]
         deriving Show
     -- Helper constants
     
@@ -32,7 +32,11 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     sortedCardList = [r2c..as]
     
     -- Helper functions
-    
+    combinations :: Int -> [a] -> [[a]]
+    combinations 0 _  = [[]]
+    combinations n xs = [ y:ys | y:xs' <- tails xs
+                               , ys <- combinations (n-1) xs']
+
     lowestRank :: [Card] -> Rank
     lowestRank _cardlist = minimum (map rank _cardlist)
     
@@ -94,13 +98,17 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     -}
     initialGuess :: Int -> ([Card], GameState)
     initialGuess _cardnum
-        | (_cardnum <= 0) || (_cardnum > 52) = ([], GameState (0,0,0,0,0))
-        | otherwise = (pickCards _cardnum [r2c..as], GameState (0,0,0,0,0))
+        | (_cardnum <= 0) || (_cardnum > 52) = ([], Remnants [])
+        | otherwise = (middle, Remnants possibilities)
+        where possibilities = combinations _cardnum sortedCardList
+              middle = possibilities !! ((length possibilities) `div` 2)
     
     {--
     Deduces the next possible guess based on the feedback
     component given by the previous guess.
     -}
-    nextGuess :: ([Card],GameState) -> (Int,Int,Int,Int,Int) -> ([Card],GameState)
-    nextGuess _ _ = ([], GameState (0,0,0,0,0))
+    nextGuess :: ([Card], GameState) -> (Int,Int,Int,Int,Int) -> ([Card], GameState)
+    nextGuess (_prev_guess, _state) (a, b, c, d, e)
+        | length _prev_guess == a = (_prev_guess, Remnants[])
+        | otherwise = ([], Remnants [])
     
