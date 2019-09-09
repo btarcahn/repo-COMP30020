@@ -29,6 +29,7 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     r2c = Card Club R2
     as = Card Spade Ace
     sortedCardList = [r2c..as]
+    ranklist = nub (map rank sortedCardList)
     
     -- Helper functions
     combinations :: Int -> [a] -> [[a]]
@@ -97,6 +98,18 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     destroySuit _suitlist (d:ds)
         | sort (map suit d) == sort _suitlist = destroySuit _suitlist ds
         | otherwise =  [d] ++ destroySuit _suitlist ds
+
+    destroyLowerRank :: Rank -> [[Card]] -> [[Card]]
+    destroyLowerRank _ [] = []
+    destroyLowerRank _rank (p:ps)
+        | any (_rank > ) (map rank p) = destroyLowerRank _rank ps
+        | otherwise = [p] ++ destroyLowerRank _rank ps
+
+    destroyHigherRank :: Rank -> [[Card]] -> [[Card]]
+    destroyHigherRank _ [] = []
+    destroyHigherRank _rank (p:ps)
+        | any (_rank < ) (map rank p) = destroyHigherRank _rank ps
+        | otherwise = [p] ++ destroyHigherRank _rank ps
     -- End of helper functions
     
     {--
@@ -140,16 +153,22 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     -}
     nextGuess :: ([Card], GameState) -> (Int,Int,Int,Int,Int) -> ([Card], GameState)
     nextGuess (_prev_guess, Remnants _remnants) (a, b, c, d, e)
+        -- base case
         | length _prev_guess == a = (_prev_guess, Win True)
+        -- 6 extreme cases:
         | e == length _prev_guess = (middle _onlied_suits, Remnants _onlied_suits)
         | c == length _prev_guess = (middle _onlied_ranks, Remnants _onlied_ranks)
         | c == 0 = (middle _destroyed_ranks, Remnants _destroyed_ranks)
         | e == 0 = (middle _destroyed_suits, Remnants _destroyed_suits)
-        | otherwise = (_next_guess, Remnants _next_remnants)
+        | b == 0 = (middle _destroyed_lower_ranks, Remnants _destroyed_lower_ranks)
+        | d == 0 = (middle _destroyed_higher_ranks, Remnants _destroyed_higher_ranks)
+        -- continuous determinism:
+        | otherwise = (middle _next_remnants, Remnants _next_remnants)
         where _next_remnants = delete _prev_guess _remnants
-              _next_guess = (middle _next_remnants)
               _destroyed_ranks = destroyRank (map rank _prev_guess) _remnants
               _destroyed_suits = destroySuit (map suit _prev_guess) _remnants
+              _destroyed_lower_ranks = delete _prev_guess (destroyLowerRank (lowestRank _prev_guess) _remnants)
+              _destroyed_higher_ranks = delete _prev_guess (destroyHigherRank (highestRank _prev_guess) _remnants)
               _onlied_ranks = delete _prev_guess (onlyRank (map rank _prev_guess) _remnants)
               _onlied_suits = delete _prev_guess (onlySuit (map suit _prev_guess) _remnants)
     
