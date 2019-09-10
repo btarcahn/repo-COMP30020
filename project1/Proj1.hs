@@ -149,20 +149,20 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     nextGuess (_prev_guess, Remnants _remnants) (a, b, c, d, e)
         -- base case
         | length _prev_guess == a = (_prev_guess, Win True)
-        -- 6 extreme cases:
-        {---| e == length _prev_guess = (middle _onlied_suits, Remnants _onlied_suits)
+        -- some enhancements with extreme cases
+        | e == length _prev_guess = (middle _onlied_suits, Remnants _onlied_suits)
         | c == length _prev_guess = (middle _onlied_ranks, Remnants _onlied_ranks)
         | c == 0 = (middle _destroyed_ranks, Remnants _destroyed_ranks)
         | e == 0 = (middle _destroyed_suits, Remnants _destroyed_suits)
         | b == 0 = (middle _destroyed_lower_ranks, Remnants _destroyed_lower_ranks)
-        | d == 0 = (middle _destroyed_higher_ranks, Remnants _destroyed_higher_ranks)-}
+        | d == 0 = (middle _destroyed_higher_ranks, Remnants _destroyed_higher_ranks)
         -- continuous determinism
         | otherwise = (middle _next_remnants, Remnants _next_remnants)
         where _next_remnants = delete _prev_guess (filter (\x -> feedback x _prev_guess == (a,b,c,d,e)) _remnants)
-              _destroyed_ranks = destroyRank (map rank _prev_guess) _remnants
-              _destroyed_suits = destroySuit (map suit _prev_guess) _remnants
-              _destroyed_lower_ranks = delete _prev_guess (destroyLowerRank (lowestRank _prev_guess) _remnants)
-              _destroyed_higher_ranks = delete _prev_guess (destroyHigherRank (highestRank _prev_guess) _remnants)
-              _onlied_ranks = delete _prev_guess (onlyRank (map rank _prev_guess) _remnants)
-              _onlied_suits = delete _prev_guess (onlySuit (map suit _prev_guess) _remnants)
+              _destroyed_ranks = destroyRank (map rank _prev_guess) _next_remnants
+              _destroyed_suits = destroySuit (map suit _prev_guess) _next_remnants
+              _destroyed_lower_ranks = delete _prev_guess (destroyLowerRank (lowestRank _prev_guess) _next_remnants)
+              _destroyed_higher_ranks = delete _prev_guess (destroyHigherRank (highestRank _prev_guess) _next_remnants)
+              _onlied_ranks = delete _prev_guess (onlyRank (map rank _prev_guess) _next_remnants)
+              _onlied_suits = delete _prev_guess (onlySuit (map suit _prev_guess) _next_remnants)
     
