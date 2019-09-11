@@ -11,12 +11,12 @@
 outside this file.
 
 * Until further notice, any unauthorized distribution 
-of this code is not allowed.
+of this code is not permitted.
 
 $$$$ ASSUMPTION $$$$
 
 * The code below uses the standard set of 52 cards excluding two Jokers. 
-Using other types of deck could trigger undesired behaviors.
+Using other types of deck may trigger undesired behaviors.
 
 $$$$ CONTRIBUTING/STYLE $$$$
 
@@ -24,6 +24,7 @@ $$$$ CONTRIBUTING/STYLE $$$$
 2. Function parameters follows underscore_naming_convention.
 3. Definitions under the "where" statement starts with _underscore.
 4. List naming, write as one word, e.g. cardlist, suitlist, namelist.
+5. One line of code should not be longer than 80 characters.
 
 -}
 
@@ -49,8 +50,7 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     combinations 0 _  = [[]]
     combinations n xs = [ y:ys | y:xs' <- tails xs
                                , ys <- combinations (n-1) xs']
-    {--|
-    Returns the middle element of the list. The middle element has the
+    {--| Returns the middle element of the list. The middle element has the
     index equals to length of list `div` 2.
     Returns an error if the list is empty.
     Returns the exact element if the list only has one element.
@@ -167,13 +167,17 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
         where correct_card 
                   = length (intersect guess answer)
               lower_rank 
-                  = length (filter (< (lowestRank guess)) (map rank answer))
+                  = length 
+                  (filter (< (lowestRank guess)) (map rank answer))
               correct_rank 
-                  = length (intersect (nub (map rank guess)) (nub (map rank answer)))
+                  = length 
+                  (intersect (nub (map rank guess)) (nub (map rank answer)))
               higher_rank 
-                  = length (filter (> (highestRank guess)) (map rank answer))
+                  = length 
+                  (filter (> (highestRank guess)) (map rank answer))
               correct_suit 
-                  = length (intersect (nub (map suit guess)) (nub (map suit answer)))
+                  = length 
+                  (intersect (nub (map suit guess)) (nub (map suit answer)))
     
     {--
     Takes an integer, and return the number of card designed for the
@@ -194,20 +198,26 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     Deduces the next possible guess based on the feedback
     component given by the previous guess.
     -}
-    nextGuess :: ([Card], GameState) -> (Int,Int,Int,Int,Int) -> ([Card], GameState)
-    nextGuess (_prev_guess, Remnants _remnants) 
+    nextGuess :: ([Card], GameState) -> (Int,Int,Int,Int,Int) 
+        -> ([Card], GameState)
+    nextGuess (prev_guess, Remnants remnants) 
       (exact_match, lower_rank, correct_rank, higher_rank, correct_suit)
         -- base case (Win State), when exact match has been reach.
-        | length _prev_guess == exact_match 
-            = (_prev_guess, Win True)
-        -- minor enhancements of extreme cases
+        | length prev_guess == exact_match 
+            = (prev_guess, Win True)
+        {--
+        The following code below is a minor enhancement if we are lucky
+        enough to choose a combination of Cards falling into 1 of these
+        6 extreme cases. This enhancement may significantly rule out
+        more inconsistent possibilities after doing the Primitive filtering.
+        -}
         -- 1. If an exact combination of suits has been reached,
         -- eliminates all other irrelevant combinations of ranks.
-        | correct_suit == length _prev_guess 
+        | correct_suit == length prev_guess 
             = (middle _onlied_suits, Remnants _onlied_suits)
         -- 2. If an exact combination of ranks has been reached,
         -- eliminates all other irrelevant combinations of ranks.
-        | correct_rank == length _prev_guess 
+        | correct_rank == length prev_guess 
             = (middle _onlied_ranks, Remnants _onlied_ranks)
         -- 3. If this combination of ranks is completely wrong,
         -- eliminates all other choices that have this rank combination.
@@ -225,23 +235,38 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
         -- has rank > highestRank.
         | higher_rank == 0
             = (middle _destroyed_higher_ranks, Remnants _destroyed_higher_ranks)
-        -- non-extreme cases: just apply the basic filtering
+        -- non-extreme cases: just apply the Primitive filtering
         | otherwise = (middle _next_remnants, Remnants _next_remnants)
         where 
-              -- basic filtering logic: 
-              -- if feedback(possibility, previousGuess) /= feedback(answer, previousGuess)
-              -- then this eliminate this possibility.
+              -- The Primitive filtering:
+              -- chooses a possibility only if 
+              -- feedback(possibility, previousGuess) 
+              -- /= feedback(answer, previousGuess)
               _next_remnants
-                = delete _prev_guess (filter (\x -> feedback x _prev_guess == (exact_match, lower_rank, correct_rank, higher_rank, correct_suit)) _remnants)
+                = delete prev_guess 
+                    (filter (\x -> feedback x prev_guess == 
+                        (exact_match, lower_rank, 
+                        correct_rank, higher_rank, 
+                        correct_suit)) remnants)
+              -- removes completely incorrect ranks.
               _destroyed_ranks 
-                = destroyRank (map rank _prev_guess) _next_remnants
+                = destroyRank (map rank prev_guess) _next_remnants
+              -- removes completely incorrect suits.
               _destroyed_suits 
-                = destroySuit (map suit _prev_guess) _next_remnants
+                = destroySuit (map suit prev_guess) _next_remnants
+              -- removes incorrect lower ranks.
               _destroyed_lower_ranks 
-                = delete _prev_guess (destroyLowerRank (lowestRank _prev_guess) _next_remnants)
+                = delete prev_guess 
+                (destroyLowerRank (lowestRank prev_guess) _next_remnants)
+              -- removes incorrect higher ranks.
               _destroyed_higher_ranks 
-                = delete _prev_guess (destroyHigherRank (highestRank _prev_guess) _next_remnants)
+                = delete prev_guess 
+                (destroyHigherRank (highestRank prev_guess) _next_remnants)
+              -- only chooses the correct combination of ranks.
               _onlied_ranks 
-                = delete _prev_guess (onlyRank (map rank _prev_guess) _next_remnants)
+                = delete prev_guess 
+                (onlyRank (map rank prev_guess) _next_remnants)
+              -- only chooses the correct combination of suits.
               _onlied_suits 
-                = delete _prev_guess (onlySuit (map suit _prev_guess) _next_remnants)
+                = delete prev_guess 
+                (onlySuit (map suit prev_guess) _next_remnants)
