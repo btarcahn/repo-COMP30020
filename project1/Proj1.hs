@@ -31,7 +31,6 @@ $$$$ CONTRIBUTING/STYLE $$$$
 module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     import Card
     import Data.List
-    import Data.Maybe
     
     {-- | A GameState preserves the list of possible combinations
     of Cards that could be the answer of the Guessing game.
@@ -47,7 +46,6 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     combinations as a result of "choosing k from the list"
     -}
     combinations :: Int -> [a] -> [[a]]
-    combinations _ [] = error "Nothing to choose from!"
     combinations 0 _  = [[]]
     combinations k xs
         | k < 0 = error "k must be non-negative"
