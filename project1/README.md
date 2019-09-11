@@ -1,5 +1,5 @@
 # Project 1
-Backup Haskell code for project 1.
+Backup Haskell code for project 1.<br>
 __Subject:__ COMP30020 Declarative Programming. <br>
 __Deadline:__ 11 Sep 2019, 17:00 AEST. <br>
 __Coordinator:__ Peter Schachte. <br>
