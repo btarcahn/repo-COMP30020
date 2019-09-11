@@ -43,13 +43,15 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     
     -- Helper functions
 
-    {--| Takes an integer n and a list, returns a list of
-    combinations as a result of "choosing n from the list"
+    {--| Takes an integer k and a non-empty list, returns a list of
+    combinations as a result of "choosing k from the list"
     -}
     combinations :: Int -> [a] -> [[a]]
+    combinations _ [] = error "Nothing to choose from!"
     combinations 0 _  = [[]]
-    combinations n xs = [ y:ys | y:xs' <- tails xs
-                               , ys <- combinations (n-1) xs']
+    combinations k xs
+        | k < 0 = error "k must be non-negative"
+        | otherwise =[y:ys | y:xs' <- tails xs, ys <- combinations (k-1) xs']
     {--| Returns the middle element of the list. The middle element has the
     index equals to length of list `div` 2.
     Returns an error if the list is empty.
@@ -61,10 +63,11 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     middle list = list !! (div (length list) 2)
     
     {--|
-    Takes in a non-emptylist of Cards. 
+    Takes in a non-empty list of Cards. 
     Returns the Rank that is lowest in that list of Cards.
     -}
     lowestRank :: [Card] -> Rank
+    lowestRank [] = error "List is empty!"
     lowestRank cardlist = minimum (map rank cardlist)
     
     {--|
@@ -72,53 +75,58 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     Returns the Rank that is the greatest in that list of Cards.
     -}
     highestRank :: [Card] -> Rank
+    highestRank [] = error "List is empty!"
     highestRank cardlist = maximum (map rank cardlist)
 
     {--|
     Takes in a combination of Ranks, and a combination of Cards.
     Deletes all combinations of Cards having that specified combination
     of Ranks.
-    This is a reverse function of onlyRank.
+    This is an inverse function of onlyRank.
     -}
     destroyRank :: [Rank] -> [[Card]] -> [[Card]]
     destroyRank _ [] = []
-    destroyRank _ranklist (d:ds)
-        | sort (map rank d) == sort _ranklist = destroyRank _ranklist ds
-        | otherwise =  [d] ++ destroyRank _ranklist ds
+    destroyRank [] possibilities = possibilities
+    destroyRank ranklist (d:ds)
+        | sort (map rank d) == sort ranklist = destroyRank ranklist ds
+        | otherwise =  d : (destroyRank ranklist ds)
     
     {--|
     Takes in a combination of Ranks, and a combination of Cards.
     Keeps only the combinations of Cards having that specified
     combination of Ranks.
-    This is a reverse function of destroyRank.
+    This is an inverse function of destroyRank.
     -}
     onlyRank :: [Rank] -> [[Card]] -> [[Card]]
     onlyRank _ [] = []
-    onlyRank _ranklist (d:ds)
-        | sort (map rank d) == sort _ranklist = [d] ++ onlyRank _ranklist ds
-        | otherwise = onlyRank _ranklist ds
+    onlyRank [] possibilities = []
+    onlyRank ranklist (d:ds)
+        | sort (map rank d) == sort ranklist = d : (onlyRank ranklist ds)
+        | otherwise = onlyRank ranklist ds
 
     {--|
     Takes in a combination of Suits, and a combination of Cards.
     Deletes all combinations of Cards having that specified
     combination of Suits.
-    This is a reverse function of onlySuit.
+    This is an inverse function of onlySuit.
     -}
     destroySuit :: [Suit] -> [[Card]] -> [[Card]]
     destroySuit _ [] = []
+    destroySuit [] possibilities = possibilities
     destroySuit _suitlist (d:ds)
         | sort (map suit d) == sort _suitlist = destroySuit _suitlist ds
-        | otherwise =  [d] ++ destroySuit _suitlist ds
+        | otherwise =  d : (destroySuit _suitlist ds)
     {--|
     Takes in a combination of Suits, and a combination of Cards.
     Keeps only the combinations of Cards having that specified
     combination of Suits.
-    This is a reverse function of destroySuit.
+    This is an inverse function of destroySuit.
     -}
     onlySuit :: [Suit] -> [[Card]] -> [[Card]]
     onlySuit _ [] = []
+    onlySuit [] possibilities = possibilities
     onlySuit _suitlist (d:ds)
-        | sort (map suit d) == sort _suitlist = [d] ++ onlySuit _suitlist ds
+        | sort (map suit d) == sort _suitlist = d : (onlySuit _suitlist ds)
         | otherwise = onlySuit _suitlist ds
 
     {--| 
@@ -187,12 +195,12 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
     returns an empty list of Card.
     -}
     initialGuess :: Int -> ([Card], GameState)
-    initialGuess _cardnum
-        | (_cardnum <= 0) || (_cardnum > 52) = ([], Remnants [])
-        | otherwise = (middle, Remnants possibilities)
-        where possibilities 
-                = combinations _cardnum [Card Club R2 .. Card Spade Ace]
-              middle = possibilities !! ((length possibilities) `div` 2)
+    initialGuess cardnum
+        | (cardnum <= 0) || (cardnum > 52) = ([], Remnants [])
+        | otherwise = (middle, Remnants _possibilities)
+        where _possibilities 
+                = combinations cardnum [Card Club R2 .. Card Spade Ace]
+              middle = _possibilities !! ((length _possibilities) `div` 2)
     
     {--
     Deduces the next possible guess based on the feedback
@@ -234,7 +242,8 @@ module Proj1 (feedback, initialGuess, nextGuess, GameState) where
         -- 6. Correct highest rank! Eliminates all possibilities that
         -- has rank > highestRank.
         | higher_rank == 0
-            = (middle _destroyed_higher_ranks, Remnants _destroyed_higher_ranks)
+            = (middle _destroyed_higher_ranks, 
+            Remnants _destroyed_higher_ranks)
         -- non-extreme cases: just apply the Primitive filtering
         | otherwise = (middle _next_remnants, Remnants _next_remnants)
         where 
