@@ -8,20 +8,33 @@
 :-use_module(library(apply)).
 :-use_module(library(clpfd)).
 
+puzzle_solution(Puzzle) :-
+    uniform_diagonal(Puzzle),
+    valid_rowcol_digits(Puzzle).
 
-full_of_digits(Matrix) :-
-    Matrix = [[_|HeaderRow]|Puzzle_Rows],
-    maplist(valid_header_elem, HeaderRow),
-    maplist(valid_puzzle_row, Puzzle_Rows).
+%%%%%%%% ROW-COLUMN SECTION %%%%%%%%
+
+/**
+ * Ignores the first row, which is assumed to be
+ * the Header.
+ */
+valid_rowcol_digits(Matrix) :-
+    Matrix = [_|Puzzle_Rows],
+    transpose(Matrix, MatrixT),
+    MatrixT = [_|Puzzle_Rows_T],
+    maplist(valid_puzzle_row, Puzzle_Rows),
+    maplist(valid_puzzle_row, Puzzle_Rows_T),
+    maplist(label, Puzzle_Rows).
 /**
  * A header element should equal to the sum or the
  * product of its corresponding column or row, also,
  * a column or row can only have distinct digits.
  * Therefore, its domain is 6..504 = 1*2*3..7*8*9.
  */
-% TODO: strengthen this with stricter counting rules.
-valid_header_elem(HeaderElem) :-
-    HeaderElem #>= 1.
+valid_header_elem(HeaderElem, BoardSize) :-
+    factorial(BoardSize, LowerBound),
+    permutations(9, BoardSize, UpperBound),
+    between(LowerBound, UpperBound, HeaderElem).
 
 /**
  * Holds if the puzzle row is valid. A valid puzzle row
@@ -29,17 +42,38 @@ valid_header_elem(HeaderElem) :-
  * the rest of it follow constraints 1 and 2.
  */
 valid_puzzle_row([HeaderElem|Row]) :-
-    valid_header_elem(HeaderElem),
-    (
-        sum(Row, #=, HeaderElem);
-        product(Row, HeaderElem)
-    ),
+    % length(Row, RowLength),
+    % valid_header_elem(HeaderElem, RowLength),
     Row ins 1..9,
-    all_distinct(Row).
+    all_distinct(Row),
+    (
+        sum(Row, #=, HeaderElem)
+        ;
+        product(Row, 1 , HeaderElem)
+    ).
 
+%%%%%%%% DIAGONAL SECTION %%%%%%%%
+uniform_diagonal(Puzzle) :-
+    diagonal(Puzzle, [_|Ds]),
+    uniform(Ds).
 
-% Helper facilities
+square(Matrix) :- maplist(same_length(Matrix), Matrix).
 
+diagonal(Matrix, Diagonal) :-
+    square(Matrix),
+    diagonal(Matrix, 1, Diagonal).
+
+diagonal([],_,[]).
+diagonal([Row|Rows], Index, [D|Ds]) :-
+    nth1(Index, Row, D),
+    NextIndex #= Index+1,
+    diagonal(Rows, NextIndex, Ds).
+
+uniform([]).
+uniform([X|Xs]) :- uniform(Xs, X).
+
+uniform([], _).
+uniform([X|Xs], X) :- uniform(Xs, X).
 /**
  * Factorial function. Using tail recursive.
  */
@@ -49,7 +83,7 @@ factorial(N, F) :-
     N1 is N-1,
     F #= N*F1,
     factorial(N1, F1).
-% TODO check the logic below:
+
 /**
  * Calculate the permutations, i.e. the Answer
  * of the Questions: "How many choices we have,
@@ -57,10 +91,11 @@ factorial(N, F) :-
  */
 permutations(0, _, 0).
 permutations(N, R, Permutations) :-
-    N #>= R,
+    N #>= R, N #> 0, R #> 0,
     R1 is (N-R+1),
     numlist(R1, N, List),
     product(List, Permutations).
+
 /**
  * Calculates the product of a list of integers.
  * This function is supplied due to the
@@ -77,5 +112,5 @@ product(List, Product) :-
 product([], Accumulator, Accumulator).
 product([0|_], _, 0) :- !.
 product([N|Ns], Accumulator, Product) :-
-    A1 is Accumulator * N,
+    A1 #= Accumulator * N,
     product(Ns, A1, Product).
