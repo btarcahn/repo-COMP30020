@@ -32,7 +32,7 @@ valid_rowcol_digits(Matrix) :-
  * Therefore, its domain is 6..504 = 1*2*3..7*8*9.
  */
 valid_header_elem(HeaderElem, BoardSize) :-
-    factorial(BoardSize, LowerBound),
+    sum_1n(BoardSize, LowerBound),
     permutations(9, BoardSize, UpperBound),
     between(LowerBound, UpperBound, HeaderElem).
 
@@ -42,8 +42,8 @@ valid_header_elem(HeaderElem, BoardSize) :-
  * the rest of it follow constraints 1 and 2.
  */
 valid_puzzle_row([HeaderElem|Row]) :-
-    % length(Row, RowLength),
-    % valid_header_elem(HeaderElem, RowLength),
+    length(Row, RowLength),
+    valid_header_elem(HeaderElem, RowLength),
     Row ins 1..9,
     all_distinct(Row),
     (
@@ -74,15 +74,11 @@ uniform([X|Xs]) :- uniform(Xs, X).
 
 uniform([], _).
 uniform([X|Xs], X) :- uniform(Xs, X).
-/**
- * Factorial function. Using tail recursive.
- */
-factorial(0, 1).
-factorial(N, F) :-
-    N #> 0,
-    N1 is N-1,
-    F #= N*F1,
-    factorial(N1, F1).
+
+sum_1n(N, Sum) :-
+    N #>= 1,
+    numlist(1, N, Numlist),
+    sumlist(Numlist, Sum).
 
 /**
  * Calculate the permutations, i.e. the Answer
