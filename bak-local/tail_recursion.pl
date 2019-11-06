@@ -1,0 +1,34 @@
+% this is tail_recursive
+append([], C, C).
+append([A|B], C, [A|BC]) :- append(B,C, BC).
+
+% adding an accumulator
+% compute this all away down!!!
+fact(N, F) :- fact1(N, 1, F).
+
+fact1(N, Accumulator, F) :-
+    ( N =:= 0 ->
+        F = Accumulator
+    ;   N > 0,
+        N1 is N - 1,
+        A1 is Accumulator * N,
+        fact(N1, A1, F)
+    ).
+
+multiply_p(X, Y, XY) :-
+    ( X = 0 ->
+        XY = 0
+    ;   X1 is X - 1,
+        multiply_p(X1, Y, X1Y),
+        XY is X1Y + Y
+    ).
+
+multiply(X, Y, XY) :- multiply1(X, Y, 0, XY).
+
+multiply1(X, Y, Accumulator, XY):-
+    ( X =:= 0 ->
+        XY = Acuumulator
+    ;   X1 is X - 1,
+        A1 is Acuumulator + Y,
+        multiply1(X1, Y, A1, XY)
+    ).

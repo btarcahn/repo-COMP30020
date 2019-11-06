@@ -1,0 +1,9 @@
+genius(bach).
+proper_list([]).
+proper_list([_Head|Tail]) :-
+    proper_list(Tail).
+
+% Takes N elems of List
+take(N, List, Front) :-
+    length(Front, N),
+    append(Front, _, List).
