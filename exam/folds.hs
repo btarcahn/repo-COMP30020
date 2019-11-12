@@ -7,7 +7,12 @@
 -- 2019, University of Melbourne. All rights reserved.
 -- 2019, Bach Tran. All rights reserved.
 
-import Prelude hiding (foldl, foldr)
+{--
+Notes: these fold function primarily works on list.
+-}
+
+import Prelude hiding (foldl, foldr, length, map, sum,
+    product, reverse)
 
 {-- |Note: the type similar to the accumulator
 and the Final value is on the LEFT. This explains
@@ -43,11 +48,14 @@ foldb f b l@(_:_:_) =
         f value1 value2
 
 -- e and v of the same type
-suml :: Num a => [a] -> a
-suml = foldl (+) 0
+sum :: Num a => [a] -> a
+sum list = foldl (+) 0 list
 
-productl :: Num a => [a] -> a
-productl = foldl (*) 1
+sum_deep :: Num a => [[a]] -> a
+sum_deep list = foldr ((+) . sum) 0 list
+
+product :: Num a => [a] -> a
+product list = foldl (*) 1 list
 
 {--
 Cost of (++) is asymmetrical, it
@@ -73,12 +81,15 @@ sumlengthl = foldl (flip ((+) . length)) 0
 sumlengthr :: [[a]] -> Int
 sumlengthr = foldr ((+) . length) 0
 
-sum1 :: Num n => [n] -> n
-sum1 [] = 0
-sum1 (x:xs) = x + sum1 xs
+length :: [a] -> Int
+length list = foldr ((+) . const 1) 0 list
 
-sum2 :: Num n => [n] -> n
-sum2 numlist = foldr (+) 0 numlist
+map :: (a -> b) -> [a] -> [b]
+map f origin = foldr ((:) . f) [] origin
 
-sum3 :: Num n => [n] -> n
-sum3 numlist = foldl (+) 0 numlist
+-- QUIZ
+hypotenuse :: [Double] -> Double
+hypotenuse sides = sqrt $ foldr1 ((+) . (**2)) sides
+
+reverse :: [a] -> [a]
+reverse = foldl (flip (:)) []
