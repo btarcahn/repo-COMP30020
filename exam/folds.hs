@@ -13,3 +13,7 @@ sum1 (x:xs) = x + sum1 xs
 
 sum2 :: Num n => [n] -> n
 sum2 numlist = foldr (+) 0 numlist
+
+sum3 :: Num n => [n] -> n
+sum3 numlist = foldl (+) 0 numlist
+
